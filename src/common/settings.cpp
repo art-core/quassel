@@ -67,6 +67,12 @@ uint Settings::version() const
     return ver;
 }
 
+QString Settings::uploadCommand() const
+{
+    create_qsettings;
+    return s.value("Config/UploadCommand").toString();
+}
+
 uint Settings::versionMinor() const
 {
     // Don't cache this value; ignore the group

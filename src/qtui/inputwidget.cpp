@@ -21,8 +21,11 @@
 #include "inputwidget.h"
 
 #include <QIcon>
+#include <QMessageBox>
+#include <QMimeData>
 #include <QPainter>
 #include <QPixmap>
+#include <QProcess>
 #include <QRect>
 
 #include "action.h"
@@ -139,6 +142,8 @@ InputWidget::InputWidget(QWidget* parent)
             &InputWidget::onTextEntered,
             Qt::QueuedConnection);  // make sure the line is already reset, bug #984
     connect(inputLine(), &QTextEdit::currentCharFormatChanged, this, &InputWidget::currentCharFormatChanged);
+
+    setAcceptDrops(true);
 }
 
 void InputWidget::setUseCustomFont(const QVariant& v)
@@ -235,6 +240,43 @@ bool InputWidget::eventFilter(QObject* watched, QEvent* event)
         return false;
     }
     return false;
+}
+
+void InputWidget::dragEnterEvent(QDragEnterEvent * event)
+{
+    if (event->mimeData()->hasFormat("text/plain")
+            && event->mimeData()->text().left(7) == "file://") {
+        event->acceptProposedAction();
+    }
+}
+
+void InputWidget::dropEvent(QDropEvent * event)
+{
+    int reply = QMessageBox::question(this, "Upload",
+        "Upload this file?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+
+    if (QMessageBox::Yes == reply) {
+        uploadFile(event->mimeData()->text().mid(7));
+    }
+}
+
+void InputWidget::uploadFile(const QString & fileName)
+{
+    UiSettings s;
+    QString cmd = s.uploadCommand().trimmed();
+    if (cmd.length() < 1) {
+        return;
+    }
+
+    QProcess proc;
+    QStringList args;
+    args << fileName;
+
+    proc.start(cmd, args, QIODevice::ReadOnly);
+    proc.waitForFinished();
+
+    QString stdout = proc.readAllStandardOutput();
+    ui.inputEdit->setText(stdout.trimmed());
 }
 
 void InputWidget::currentChanged(const QModelIndex& current, const QModelIndex& previous)

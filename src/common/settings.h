@@ -102,6 +102,8 @@ public:
      */
     virtual void setVersionMinor(const uint versionMinor);
 
+    QString uploadCommand() const;
+
     /**
      * Persist unsaved changes to permanent storage
      *

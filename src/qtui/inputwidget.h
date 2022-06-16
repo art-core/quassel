@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QHash>
 #include <QIcon>
 #include <QMap>
@@ -99,6 +101,9 @@ public slots:
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
+    void dragEnterEvent(QDragEnterEvent * event);
+    void dropEvent(QDropEvent * event);
+    void uploadFile(const QString & file);
 
 protected slots:
     void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
